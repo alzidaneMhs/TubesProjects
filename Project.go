@@ -5,9 +5,9 @@ import (
 	"strings"
 )
 
-const (
-	maxStartups = 100
-)
+const maxStartups = 100
+const MaxMember = 100
+
 
 type TeamMember struct {
 	Name string
@@ -20,7 +20,7 @@ type STRP struct {
 	Funding  float64
 	field    string
 	Category string
-	Team     []TeamMember
+	Team     [MaxMember]TeamMember
 	TeamSize int
 }
 
@@ -139,6 +139,11 @@ func addTeamMember(startups *[maxStartups]STRP, N int) {
 		return
 	}
 	s := &startups[index-1]
+	if s.TeamSize >= MaxMember {
+		fmt.Println("Team is full.")
+		return
+	}
+
 	fmt.Print("Enter team member name: ")
 	fmt.Scan(&tm.Name)
 	fmt.Print("Enter role: ")

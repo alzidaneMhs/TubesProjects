@@ -8,7 +8,6 @@ import (
 const maxStartups = 100
 const MaxMember = 100
 
-
 type TeamMember struct {
 	Name string
 	Role string
@@ -86,6 +85,7 @@ func addStartup(startups *[maxStartups]STRP, N *int) {
 	fmt.Scan(&s.field)
 	fmt.Print("Enter category: ")
 	fmt.Scan(&s.Category)
+
 	startups[*N] = s
 	(*N)++
 	fmt.Println("Startup added successfully.")
@@ -197,7 +197,7 @@ func searchByFieldBinarySearch(S [maxStartups]STRP, n int) {
 	}
 
 	if found {
-		fmt.Printf("Found: %s (%d) - $%.2f - %s - %s\n", S[mid].Name, S[mid].Founded, S[mid].Funding,S[mid].Category, S[mid].field)
+		fmt.Printf("Found: %s (%d) - $%.2f - %s - %s\n", S[mid].Name, S[mid].Founded, S[mid].Funding, S[mid].Category, S[mid].field)
 	} else {
 		fmt.Println("Startup with given field not found.")
 	}
@@ -226,25 +226,20 @@ func sortByFundingSelection(startups *[maxStartups]STRP, N int) {
 }
 
 func sortByYearSelection(startups *[maxStartups]STRP, N int) {
-	var pass, idx, i int
+	var pass, j int
 	var temp STRP
 
-	pass = 1
-	for pass <= N-1 {
-		idx = pass - 1
-		i = pass
-		for i < N {
-			if startups[idx].Founded > startups[i].Founded {
-				idx = i
-			}
-			i++
+	for pass = 1; pass < N; pass++ {
+		j = pass
+		temp = startups[pass]
+
+		for j > 0 && startups[j-1].Founded > temp.Founded {
+			startups[j] = startups[j-1]
+			j = j - 1
 		}
-		temp = startups[pass-1]
-		startups[pass-1] = startups[idx]
-		startups[idx] = temp
-		pass++
+		startups[j] = temp
 	}
-	fmt.Println("Startups sorted by year (Ascending).")
+	fmt.Println("Startups sorted by year (Ascending)..")
 }
 
 func reportByCategory(startups *[maxStartups]STRP, N int) {

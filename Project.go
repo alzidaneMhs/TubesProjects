@@ -7,7 +7,6 @@ import (
 
 const (
 	maxStartups    = 100
-	maxTeamMembers = 10
 )
 
 type TeamMember struct {
@@ -15,19 +14,19 @@ type TeamMember struct {
 	Role string
 }
 
-type Oger struct {
+type STRP struct {
 	Name     string
 	Founded  int
 	Funding  float64
 	Category string
-	Team     [maxTeamMembers]TeamMember
+	Team     []TeamMember
 	TeamSize int
 }
 
-var startups [maxStartups]Oger
-var startupCount int
-
 func main() {
+	var startups [maxStartups]STRP
+	var N int
+
 	for {
 		fmt.Println("\n=== Startup Management Menu ===")
 		fmt.Println("1. Add Startup")
@@ -45,19 +44,19 @@ func main() {
 
 		switch choice {
 		case 1:
-			addStartup()
+			addStartup(&startups, &N)
 		case 2:
-			viewStartups()
+			viewStartups(&startups, N)
 		case 3:
-			addTeamMember()
+			addTeamMember(&startups, N)
 		case 4:
-			searchByNameSequential()
+			searchByNameSequential(&startups, N)
 		case 5:
-			sortByFundingSelection()
+			sortByFundingSelection(&startups, N)
 		case 6:
-			reportByCategory()
+			reportByCategory(&startups, N)
 		case 7:
-			deleteStartup()
+			deleteStartup(&startups, &N)
 		case 8:
 			return
 		default:
@@ -66,13 +65,13 @@ func main() {
 	}
 }
 
-func addStartup() {
-	if startupCount >= maxStartups {
+func addStartup(startups *[maxStartups]STRP, N *int) {
+	if *N >= maxStartups {
 		fmt.Println("Cannot add more startups.")
 		return
 	}
 
-	var s Oger
+	var s STRP
 	fmt.Print("Enter startup name: ")
 	fmt.Scan(&s.Name)
 	fmt.Print("Enter year founded: ")
@@ -82,18 +81,18 @@ func addStartup() {
 	fmt.Print("Enter category: ")
 	fmt.Scan(&s.Category)
 
-	startups[startupCount] = s
-	startupCount++
+	startups[*N] = s
+	(*N)++
 	fmt.Println("Startup added successfully.")
 }
 
-func viewStartups() {
-	if startupCount == 0 {
+func viewStartups(startups *[maxStartups]STRP, N int) {
+	if N == 0 {
 		fmt.Println("No startups available.")
 		return
 	}
 
-	for i := 0; i < startupCount; i++ {
+	for i := 0; i < N; i++ {
 		s := startups[i]
 		fmt.Printf("[%d] %s (%d) - $%.2f - %s\n", i+1, s.Name, s.Founded, s.Funding, s.Category)
 		for j := 0; j < s.TeamSize; j++ {
@@ -103,28 +102,25 @@ func viewStartups() {
 	}
 }
 
-func addTeamMember() {
-	if startupCount == 0 {
+func addTeamMember(startups *[maxStartups]STRP, N int) {
+	var tm TeamMember
+	var index int
+
+    if N == 0 {
 		fmt.Println("No startups to assign team members.")
 		return
 	}
 
-	var index int
 	fmt.Print("Enter startup index: ")
 	fmt.Scan(&index)
 
-	if index <= 0 || index > startupCount {
+	if index <= 0 || index > N {
 		fmt.Println("Invalid startup index.")
 		return
 	}
 
 	s := &startups[index-1]
-	if s.TeamSize >= maxTeamMembers {
-		fmt.Println("Team is full.")
-		return
-	}
-
-	var tm TeamMember
+	
 	fmt.Print("Enter team member name: ")
 	fmt.Scan(&tm.Name)
 	fmt.Print("Enter role: ")
@@ -135,7 +131,7 @@ func addTeamMember() {
 	fmt.Println("Team member added.")
 }
 
-func searchByNameSequential() {
+func searchByNameSequential(startups *[maxStartups]STRP, N int) {
 	var name string
 	fmt.Print("Enter startup name to search: ")
 	fmt.Scan(&name)
@@ -143,45 +139,45 @@ func searchByNameSequential() {
 	found := false
 	i := 0
 
-	for i < startupCount {
+	for i < N {
 		if strings.EqualFold(startups[i].Name, name) {
 			fmt.Printf("Found: %s (%d) - $%.2f - %s\n", startups[i].Name, startups[i].Founded, startups[i].Funding, startups[i].Category)
 			found = true
-			i = startupCount
+			i = N
 		} else {
 			i++
 		}
 	}
 
-	if !found {
+	if found == false  {
 		fmt.Println("Startup not found.")
 	}
 }
 
-func sortByFundingSelection() {
+func sortByFundingSelection(startups *[maxStartups]STRP, N int) {
 	var pass, idx, i int
-	var temp Oger
-	pass = 1
+	var temp STRP
 
-	for pass <= startupCount-1 {
+	pass = 1
+	for pass <= N-1 {
 		idx = pass - 1
 		i = pass
-		for i < startupCount {
+		for i < N {
 			if startups[idx].Funding < startups[i].Funding {
 				idx = i
 			}
 			i++
 		}
 		temp = startups[pass-1]
-		startups[pass-1] = startups[idx]		
+		startups[pass-1] = startups[idx]
 		startups[idx] = temp
 		pass++
 	}
 	fmt.Println("Startups sorted by funding.")
 }
 
-func reportByCategory() {
-	if startupCount == 0 {
+func reportByCategory(startups *[maxStartups]STRP, N int) {
+	if N == 0 {
 		fmt.Println("No data available.")
 		return
 	}
@@ -190,20 +186,18 @@ func reportByCategory() {
 	var counts [maxStartups]int
 	categoryCount := 0
 
-	for i := 0; i < startupCount; i++ {
+	for i := 0; i < N; i++ {
 		cat := startups[i].Category
 		found := false
 
-		j := 0
-		for j < categoryCount && !found {
+		for j := 0; j < categoryCount && !found; j++ {
 			if categories[j] == cat {
 				counts[j]++
 				found = true
 			}
-			j++
 		}
 
-		if !found {
+		if found == false {
 			categories[categoryCount] = cat
 			counts[categoryCount] = 1
 			categoryCount++
@@ -211,15 +205,13 @@ func reportByCategory() {
 	}
 
 	fmt.Println("Report: Number of Startups per Category")
-	i := 0
-	for i < categoryCount {
+	for i := 0; i < categoryCount; i++ {
 		fmt.Printf("- %s: %d\n", categories[i], counts[i])
-		i++
 	}
 }
 
-func deleteStartup() {
-	if startupCount == 0 {
+func deleteStartup(startups *[maxStartups]STRP, N *int) {
+	if *N == 0 {
 		fmt.Println("No startups to delete.")
 		return
 	}
@@ -228,20 +220,20 @@ func deleteStartup() {
 	fmt.Print("Enter the index of the startup to delete: ")
 	fmt.Scan(&index)
 
-	if index <= 0 || index > startupCount {
+	if index <= 0 || index > *N {
 		fmt.Println("Invalid index.")
 		return
 	}
 
 	fmt.Println("Before deletion:")
-	viewStartups()
+	viewStartups(startups, *N)
 
-	for i := index - 1; i < startupCount-1; i++ {
+	for i := index - 1; i < *N-1; i++ {
 		startups[i] = startups[i+1]
 	}
 
-	startupCount--
+	*N-- 
 
 	fmt.Println("After deletion:")
-	viewStartups()
+	viewStartups(startups, *N)
 }

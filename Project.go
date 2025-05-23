@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	maxStartups    = 100
+	maxStartups = 100
 )
 
 type TeamMember struct {
@@ -18,6 +18,7 @@ type STRP struct {
 	Name     string
 	Founded  int
 	Funding  float64
+	field    string
 	Category string
 	Team     []TeamMember
 	TeamSize int
@@ -33,11 +34,12 @@ func main() {
 		fmt.Println("2. View Startups")
 		fmt.Println("3. Add Team Member")
 		fmt.Println("4. Search Startup by Name")
-		fmt.Println("5. Sort Startups by Funding(Descending)")
-		fmt.Println("6. Sort Startups by Year(Ascending)")
-		fmt.Println("7. Report by Category")
-		fmt.Println("8. Delete Startup")
-		fmt.Println("9. Exit")
+		fmt.Println("5. Search starup by field")
+		fmt.Println("6. Sort Startups by Funding(Descending)")
+		fmt.Println("7. Sort Startups by Year(Ascending)")
+		fmt.Println("8. Report by Category")
+		fmt.Println("9. Delete Startup")
+		fmt.Println("10. Exit")
 
 		var choice int
 		fmt.Print("Enter choice: ")
@@ -52,14 +54,16 @@ func main() {
 		case 4:
 			searchByNameSequential(&startups, N)
 		case 5:
-			sortByFundingSelection(&startups, N)
+			searchByFieldBinarySearch(startups, N)
 		case 6:
-			sortByYearSelection(&startups, N)
+			sortByFundingSelection(&startups, N)
 		case 7:
-			reportByCategory(&startups, N)
+			sortByYearSelection(&startups, N)
 		case 8:
-			deleteStartup(&startups, &N)
+			reportByCategory(&startups, N)
 		case 9:
+			deleteStartup(&startups, &N)
+		case 10:
 			return
 		default:
 			fmt.Println("Invalid choice.")
@@ -68,17 +72,19 @@ func main() {
 }
 
 func addStartup(startups *[maxStartups]STRP, N *int) {
+	var s STRP
 	if *N >= maxStartups {
 		fmt.Println("Cannot add more startups.")
 		return
 	}
-	var s STRP
 	fmt.Print("Enter startup name: ")
 	fmt.Scan(&s.Name)
 	fmt.Print("Enter year founded: ")
 	fmt.Scan(&s.Founded)
 	fmt.Print("Enter funding amount: ")
 	fmt.Scan(&s.Funding)
+	fmt.Print("Enter Field: ")
+	fmt.Scan(&s.field)
 	fmt.Print("Enter category: ")
 	fmt.Scan(&s.Category)
 	startups[*N] = s
@@ -93,7 +99,7 @@ func viewStartups(startups *[maxStartups]STRP, N int) {
 	}
 	for i := 0; i < N; i++ {
 		s := startups[i]
-		fmt.Printf("[%d] %s (%d) - $%.2f - %s\n", i+1, s.Name, s.Founded, s.Funding, s.Category)
+		fmt.Printf("[%d] %s (%d) - $%.2f - %s - %s\n", i+1, s.Name, s.Founded, s.Funding, s.field, s.Category)
 		for j := 0; j < s.TeamSize; j++ {
 			t := s.Team[j]
 			fmt.Printf("   - %s: %s\n", t.Name, t.Role)
@@ -105,7 +111,7 @@ func addTeamMember(startups *[maxStartups]STRP, N int) {
 	var tm TeamMember
 	var index int
 
-    if N == 0 {
+	if N == 0 {
 		fmt.Println("No startups to assign team members.")
 		return
 	}
@@ -142,8 +148,37 @@ func searchByNameSequential(startups *[maxStartups]STRP, N int) {
 			i++
 		}
 	}
-	if found == false  {
+	if found == false {
 		fmt.Println("Startup not found.")
+	}
+}
+
+func searchByFieldBinarySearch(S [maxStartups]STRP, n int) {
+	var field string
+	fmt.Print("Enter field to search: ")
+	fmt.Scan(&field)
+
+	min := 0
+	max := n - 1
+	found := false
+	var mid int
+
+	for min <= max && !found {
+		mid = (min + max) / 2
+
+		if field > S[mid].field {
+			min = mid + 1
+		} else if field < S[mid].field {
+			max = mid - 1
+		} else {
+			found = true
+		}
+	}
+
+	if found {
+		fmt.Printf("Found: %s (%d) - $%.2f - %s - %s\n", S[mid].Name, S[mid].Founded, S[mid].Funding,S[mid].Category, S[mid].field)
+	} else {
+		fmt.Println("Startup with given field not found.")
 	}
 }
 
@@ -241,7 +276,7 @@ func deleteStartup(startups *[maxStartups]STRP, N *int) {
 	for i := index - 1; i < *N-1; i++ {
 		startups[i] = startups[i+1]
 	}
-	*N-- 
+	*N--
 	fmt.Println("After deletion:")
 	viewStartups(startups, *N)
 }

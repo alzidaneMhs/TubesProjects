@@ -34,7 +34,7 @@ func main() {
 		fmt.Println("2. View Startups")
 		fmt.Println("3. Add Team Member")
 		fmt.Println("4. Search Startup by Name")
-		fmt.Println("5. Sort Startups by Funding (Selection Sort)")
+		fmt.Println("5. Sort Startups by Funding")
 		fmt.Println("6. Report by Category")
 		fmt.Println("7. Delete Startup")
 		fmt.Println("8. Exit")
@@ -158,16 +158,24 @@ func searchByNameSequential() {
 	}
 }
 
-
 func sortByFundingSelection() {
-	for i := 0; i < startupCount-1; i++ {
-		minIdx := i
-		for j := i + 1; j < startupCount; j++ {
-			if startups[j].Funding < startups[minIdx].Funding {
-				minIdx = j
+	var pass, idx, i int
+	var temp Oger
+	pass = 1
+
+	for pass <= startupCount-1 {
+		idx = pass - 1
+		i = pass
+		for i < startupCount {
+			if startups[idx].Funding < startups[i].Funding {
+				idx = i
 			}
+			i++
 		}
-		startups[i], startups[minIdx] = startups[minIdx], startups[i]
+		temp = startups[pass-1]
+		startups[pass-1] = startups[idx]		
+		startups[idx] = temp
+		pass++
 	}
 	fmt.Println("Startups sorted by funding.")
 }

@@ -36,7 +36,8 @@ func main() {
 		fmt.Println("4. Search Startup by Name")
 		fmt.Println("5. Sort Startups by Funding (Selection Sort)")
 		fmt.Println("6. Report by Category")
-		fmt.Println("7. Exit")
+		fmt.Println("7. Delete Startup")
+		fmt.Println("8. Exit")
 
 		var choice int
 		fmt.Print("Enter choice: ")
@@ -56,6 +57,8 @@ func main() {
 		case 6:
 			reportByCategory()
 		case 7:
+			deleteStartup()
+		case 8:
 			return
 		default:
 			fmt.Println("Invalid choice.")
@@ -207,3 +210,30 @@ func reportByCategory() {
 	}
 }
 
+func deleteStartup() {
+	if startupCount == 0 {
+		fmt.Println("No startups to delete.")
+		return
+	}
+
+	var index int
+	fmt.Print("Enter the index of the startup to delete: ")
+	fmt.Scan(&index)
+
+	if index <= 0 || index > startupCount {
+		fmt.Println("Invalid index.")
+		return
+	}
+
+	fmt.Println("Before deletion:")
+	viewStartups()
+
+	for i := index - 1; i < startupCount-1; i++ {
+		startups[i] = startups[i+1]
+	}
+
+	startupCount--
+
+	fmt.Println("After deletion:")
+	viewStartups()
+}

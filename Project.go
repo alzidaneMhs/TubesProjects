@@ -33,15 +33,15 @@ func main() {
 		fmt.Println("2. View Startups")
 		fmt.Println("3. Add Team Member")
 		fmt.Println("4. Search Startup by Name")
-		fmt.Println("5. Sort Startups by Funding")
-		fmt.Println("6. Report by Category")
-		fmt.Println("7. Delete Startup")
-		fmt.Println("8. Exit")
+		fmt.Println("5. Sort Startups by Funding(Descending)")
+		fmt.Println("6. Sort Startups by Year(Ascending)")
+		fmt.Println("7. Report by Category")
+		fmt.Println("8. Delete Startup")
+		fmt.Println("9. Exit")
 
 		var choice int
 		fmt.Print("Enter choice: ")
 		fmt.Scan(&choice)
-
 		switch choice {
 		case 1:
 			addStartup(&startups, &N)
@@ -54,10 +54,12 @@ func main() {
 		case 5:
 			sortByFundingSelection(&startups, N)
 		case 6:
-			reportByCategory(&startups, N)
+			sortByYearSelection(&startups, N)
 		case 7:
-			deleteStartup(&startups, &N)
+			reportByCategory(&startups, N)
 		case 8:
+			deleteStartup(&startups, &N)
+		case 9:
 			return
 		default:
 			fmt.Println("Invalid choice.")
@@ -70,7 +72,6 @@ func addStartup(startups *[maxStartups]STRP, N *int) {
 		fmt.Println("Cannot add more startups.")
 		return
 	}
-
 	var s STRP
 	fmt.Print("Enter startup name: ")
 	fmt.Scan(&s.Name)
@@ -80,7 +81,6 @@ func addStartup(startups *[maxStartups]STRP, N *int) {
 	fmt.Scan(&s.Funding)
 	fmt.Print("Enter category: ")
 	fmt.Scan(&s.Category)
-
 	startups[*N] = s
 	(*N)++
 	fmt.Println("Startup added successfully.")
@@ -91,7 +91,6 @@ func viewStartups(startups *[maxStartups]STRP, N int) {
 		fmt.Println("No startups available.")
 		return
 	}
-
 	for i := 0; i < N; i++ {
 		s := startups[i]
 		fmt.Printf("[%d] %s (%d) - $%.2f - %s\n", i+1, s.Name, s.Founded, s.Funding, s.Category)
@@ -110,7 +109,6 @@ func addTeamMember(startups *[maxStartups]STRP, N int) {
 		fmt.Println("No startups to assign team members.")
 		return
 	}
-
 	fmt.Print("Enter startup index: ")
 	fmt.Scan(&index)
 
@@ -118,14 +116,11 @@ func addTeamMember(startups *[maxStartups]STRP, N int) {
 		fmt.Println("Invalid startup index.")
 		return
 	}
-
 	s := &startups[index-1]
-	
 	fmt.Print("Enter team member name: ")
 	fmt.Scan(&tm.Name)
 	fmt.Print("Enter role: ")
 	fmt.Scan(&tm.Role)
-
 	s.Team[s.TeamSize] = tm
 	s.TeamSize++
 	fmt.Println("Team member added.")
@@ -135,7 +130,6 @@ func searchByNameSequential(startups *[maxStartups]STRP, N int) {
 	var name string
 	fmt.Print("Enter startup name to search: ")
 	fmt.Scan(&name)
-
 	found := false
 	i := 0
 
@@ -148,7 +142,6 @@ func searchByNameSequential(startups *[maxStartups]STRP, N int) {
 			i++
 		}
 	}
-
 	if found == false  {
 		fmt.Println("Startup not found.")
 	}
@@ -173,7 +166,29 @@ func sortByFundingSelection(startups *[maxStartups]STRP, N int) {
 		startups[idx] = temp
 		pass++
 	}
-	fmt.Println("Startups sorted by funding.")
+	fmt.Println("Startups sorted by funding(Descending).")
+}
+
+func sortByYearSelection(startups *[maxStartups]STRP, N int) {
+	var pass, idx, i int
+	var temp STRP
+
+	pass = 1
+	for pass <= N-1 {
+		idx = pass - 1
+		i = pass
+		for i < N {
+			if startups[idx].Founded > startups[i].Founded {
+				idx = i
+			}
+			i++
+		}
+		temp = startups[pass-1]
+		startups[pass-1] = startups[idx]
+		startups[idx] = temp
+		pass++
+	}
+	fmt.Println("Startups sorted by year (Ascending).")
 }
 
 func reportByCategory(startups *[maxStartups]STRP, N int) {
@@ -181,7 +196,6 @@ func reportByCategory(startups *[maxStartups]STRP, N int) {
 		fmt.Println("No data available.")
 		return
 	}
-
 	var categories [maxStartups]string
 	var counts [maxStartups]int
 	categoryCount := 0
@@ -196,14 +210,12 @@ func reportByCategory(startups *[maxStartups]STRP, N int) {
 				found = true
 			}
 		}
-
 		if found == false {
 			categories[categoryCount] = cat
 			counts[categoryCount] = 1
 			categoryCount++
 		}
 	}
-
 	fmt.Println("Report: Number of Startups per Category")
 	for i := 0; i < categoryCount; i++ {
 		fmt.Printf("- %s: %d\n", categories[i], counts[i])
@@ -215,7 +227,6 @@ func deleteStartup(startups *[maxStartups]STRP, N *int) {
 		fmt.Println("No startups to delete.")
 		return
 	}
-
 	var index int
 	fmt.Print("Enter the index of the startup to delete: ")
 	fmt.Scan(&index)
@@ -224,16 +235,13 @@ func deleteStartup(startups *[maxStartups]STRP, N *int) {
 		fmt.Println("Invalid index.")
 		return
 	}
-
 	fmt.Println("Before deletion:")
 	viewStartups(startups, *N)
 
 	for i := index - 1; i < *N-1; i++ {
 		startups[i] = startups[i+1]
 	}
-
 	*N-- 
-
 	fmt.Println("After deletion:")
 	viewStartups(startups, *N)
 }

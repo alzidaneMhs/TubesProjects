@@ -79,8 +79,7 @@ func addStartup(startups *[maxStartups]STRP, N *int) {
 	}
 	fmt.Print("Enter startup name: ")
 	fmt.Scan(&s.Name)
-	fmt.Print("Enter year founded: ")
-	fmt.Scan(&s.Founded)
+	getYearInput(&s.Founded)
 	fmt.Print("Enter funding amount: ")
 	fmt.Scan(&s.Funding)
 	fmt.Print("Enter Field: ")
@@ -90,6 +89,23 @@ func addStartup(startups *[maxStartups]STRP, N *int) {
 	startups[*N] = s
 	(*N)++
 	fmt.Println("Startup added successfully.")
+}
+
+func getYearInput(year *int) {
+	var temp int
+	var valid bool = false
+
+	for valid == false {
+		fmt.Print("Enter year founded (4-digit): ")
+		fmt.Scan(&temp)
+
+		if temp >= 1000 && temp <= 9999 {
+			*year = temp
+			valid = true
+		} else {
+			fmt.Println("Invalid input. Please enter a 4-digit number.")
+		}
+	}
 }
 
 func viewStartups(startups *[maxStartups]STRP, N int) {

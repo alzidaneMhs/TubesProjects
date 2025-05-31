@@ -1,4 +1,5 @@
 package main
+
 import "fmt"
 
 const MaxStartups = 100
@@ -47,7 +48,7 @@ func main() {
 		case 7:
 			sortByYear(&startups, startupCount)
 		case 8:
-			reportByCategory(startups, startupCount)
+			reportByCategory(&startups, startupCount)
 		case 9:
 			deleteStartup(&startups, &startupCount)
 		default:
@@ -112,7 +113,7 @@ func viewStartups(S StartupList, N int) {
 func addTeamMember(S *StartupList, N int) {
 	var index int
 	var member TeamMember
-	
+
 	if N == 0 {
 		fmt.Println("No startups available.")
 		return
@@ -168,76 +169,102 @@ func searchStartupByField(S StartupList, N int) {
 }
 
 func sortByFunding(S *StartupList, N int) {
-	for i := 0; i < N-1; i++ {
-		for j := i + 1; j < N; j++ {
-			if S[i].funding < S[j].funding {
-				S[i], S[j] = S[j], S[i]
+	var pass, idx, i int
+	var temp Startup
+
+	pass = 1
+	for pass <= N-1 {
+		idx = pass - 1
+		i = pass
+		for i < N {
+			if S[idx].funding < S[i].funding {
+				idx = i
 			}
+			i++
 		}
+		temp = S[pass-1]
+		S[pass-1] = S[idx]
+		S[idx] = temp
+		pass++
 	}
-	fmt.Println("Sorted by funding (descending).")
+	fmt.Println("Startups sorted by funding (descending).")
 }
 
 func sortByYear(S *StartupList, N int) {
-	for i := 0; i < N-1; i++ {
-		for j := i + 1; j < N; j++ {
-			if S[i].founded > S[j].founded {
-				S[i], S[j] = S[j], S[i]
-			}
+	var pass, j int
+	var temp Startup
+
+	for pass = 1; pass < N; pass++ {
+		j = pass
+		temp = S[pass]
+
+		for j > 0 && S[j-1].founded > temp.founded {
+			S[j] = S[j-1]
+			j = j - 1
 		}
+		S[j] = temp
 	}
-	fmt.Println("Sorted by year (ascending).")
+	fmt.Println("Startups sorted by year (ascending).")
 }
 
-func reportByCategory(S StartupList, N int) {
+func reportByCategory(S *StartupList, N int) {
 	if N == 0 {
-		fmt.Println("No startups to report.")
+		fmt.Println("No data available.")
 		return
 	}
 
 	var categories [MaxStartups]string
-	var count [MaxStartups]int
-	var catCount int
+	var counts [MaxStartups]int
+	categoryCount := 0
 
 	for i := 0; i < N; i++ {
+		cat := S[i].category
 		found := false
-		for j := 0; j < catCount; j++ {
-			if S[i].category == categories[j] {
-				count[j]++
+
+		for j := 0; j < categoryCount && !found; j++ {
+			if categories[j] == cat {
+				counts[j]++
 				found = true
-				break
 			}
 		}
-		if !found {
-			categories[catCount] = S[i].category
-			count[catCount] = 1
-			catCount++
+
+		if found == false {
+			categories[categoryCount] = cat
+			counts[categoryCount] = 1
+			categoryCount++
 		}
 	}
 
-	fmt.Println("Report by Category:")
-	for i := 0; i < catCount; i++ {
-		fmt.Printf("- %s: %d startups\n", categories[i], count[i])
+	fmt.Println("Report: Number of Startups per Category")
+	for i := 0; i < categoryCount; i++ {
+		fmt.Printf("- %s: %d\n", categories[i], counts[i])
 	}
 }
 
+
 func deleteStartup(S *StartupList, N *int) {
-	var index int
 	if *N == 0 {
 		fmt.Println("No startups to delete.")
 		return
 	}
 
-	fmt.Print("Enter startup number to delete: ")
+	var index int
+	fmt.Print("Enter the index of the startup to delete: ")
 	fmt.Scan(&index)
-	if index < 1 || index > *N {
+
+	if index <= 0 || index > *N {
 		fmt.Println("Invalid index.")
 		return
 	}
+
+	fmt.Println("Before deletion:")
+	viewStartups(*S, *N)
 
 	for i := index - 1; i < *N-1; i++ {
 		S[i] = S[i+1]
 	}
 	*N--
-	fmt.Println("Startup deleted.")
+
+	fmt.Println("After deletion:")
+	viewStartups(*S, *N)
 }

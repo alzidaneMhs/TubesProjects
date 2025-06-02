@@ -1,6 +1,11 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
 
 const MaxStartups = 100
 const MaxMembers = 100
@@ -25,38 +30,47 @@ type StartupList [MaxStartups]Startup
 var startupCount = 0
 
 func main() {
-	var startups StartupList
-	var choice int
+	router := gin.Default()
+	router.LoadHTMLGlob("templates/*")
 
-	showMenu()
-	fmt.Scan(&choice)
+	router.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html", gin.H{
+			"title": "Apoakah",
+		})
+	})
+	router.Run()
+	// var startups StartupList
+	// var choice int
 
-	for choice != 0 {
-		switch choice {
-		case 1:
-			addStartup(&startups, &startupCount)
-		case 2:
-			viewStartups(startups, startupCount)
-		case 3:
-			addTeamMember(&startups, startupCount)
-		case 4:
-			searchStartupByName(startups, startupCount)
-		case 5:
-			searchStartupByField(startups, startupCount)
-		case 6:
-			sortByFunding(&startups, startupCount)
-		case 7:
-			sortByYear(&startups, startupCount)
-		case 8:
-			reportByCategory(&startups, startupCount)
-		case 9:
-			deleteStartup(&startups, &startupCount)
-		default:
-			fmt.Println("Invalid option.")
-		}
-		showMenu()
-		fmt.Scan(&choice)
-	}
+	// showMenu()
+	// fmt.Scan(&choice)
+
+	// for choice != 0 {
+	// 	switch choice {
+	// 	case 1:
+	// 		addStartup(&startups, &startupCount)
+	// 	case 2:
+	// 		viewStartups(startups, startupCount)
+	// 	case 3:
+	// 		addTeamMember(&startups, startupCount)
+	// 	case 4:
+	// 		searchStartupByName(startups, startupCount)
+	// 	case 5:
+	// 		searchStartupByField(startups, startupCount)
+	// 	case 6:
+	// 		sortByFunding(&startups, startupCount)
+	// 	case 7:
+	// 		sortByYear(&startups, startupCount)
+	// 	case 8:
+	// 		reportByCategory(&startups, startupCount)
+	// 	case 9:
+	// 		deleteStartup(&startups, &startupCount)
+	// 	default:
+	// 		fmt.Println("Invalid option.")
+	// 	}
+	// 	showMenu()
+	// 	fmt.Scan(&choice)
+	// }
 }
 
 func showMenu() {
@@ -240,7 +254,6 @@ func reportByCategory(S *StartupList, N int) {
 		fmt.Printf("- %s: %d\n", categories[i], counts[i])
 	}
 }
-
 
 func deleteStartup(S *StartupList, N *int) {
 	if *N == 0 {

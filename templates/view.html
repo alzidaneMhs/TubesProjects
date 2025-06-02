@@ -1,0 +1,24 @@
+{{ define "content" }}
+<h2 class="mb-4">All Startups</h2>
+{{ if .startups }}
+    <div class="row">
+        {{ range .startups }}
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ .name }}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">Founded: {{ .founded }}</h6>
+                    <p class="card-text">
+                        <strong>Funding:</strong> ${{ printf "%.2f" .funding }} <br>
+                        <strong>Field:</strong> {{ .field }} <br>
+                        <strong>Category:</strong> {{ .category }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        {{ end }}
+    </div>
+{{ else }}
+    <div class="alert alert-warning">No startups available.</div>
+{{ end }}
+{{ end }}

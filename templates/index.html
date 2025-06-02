@@ -1,15 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    
-</body>
-
-<style>
-
-</style>
-</html>
+{{ define "content" }}
+<div class="text-center">
+    <h1 class="mb-4">🚀 Welcome to Startup Manager</h1>
+    <p class="lead">
+        This app helps you manage your startup ideas, add team members, and organize everything efficiently.
+    </p>
+    <div class="mt-4">
+        <a href="/view" class="btn btn-primary btn-lg me-2">View All Startups</a>
+        <a href="/add" class="btn btn-outline-success btn-lg">Add New Startup</a>
+    </div>
+</div>
+{{ end }}

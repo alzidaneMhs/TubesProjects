@@ -30,14 +30,32 @@ type StartupList [MaxStartups]Startup
 var startupCount = 0
 
 func main() {
+	var startups StartupList
+
 	router := gin.Default()
 	router.LoadHTMLGlob("templates/*")
 
 	router.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.html", gin.H{
-			"title": "Apoakah",
-		})
+	c.HTML(http.StatusOK, "layout.html", gin.H{
+		"title": "Home",
+		"content": "index",
 	})
+})
+
+router.GET("/view", func(c *gin.Context) {
+	c.HTML(http.StatusOK, "layout.html", gin.H{
+		"title": "View Startups",
+		"content": "view",
+		"startups": startups[:startupCount],
+	})
+})
+
+router.GET("/add", func(c *gin.Context) {
+	c.HTML(http.StatusOK, "layout.html", gin.H{
+		"title": "Add Startup",
+		"content": "add",
+	})
+})
 	router.Run()
 	// var startups StartupList
 	// var choice int

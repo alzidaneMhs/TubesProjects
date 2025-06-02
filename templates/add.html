@@ -1,0 +1,26 @@
+{{ define "content" }}
+<h2 class="mb-4">Add New Startup</h2>
+<form method="POST" action="/add" class="p-4 bg-white shadow rounded">
+    <div class="mb-3">
+        <label class="form-label">Startup Name</label>
+        <input type="text" name="name" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Founded Year</label>
+        <input type="number" name="founded" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Funding (USD)</label>
+        <input type="number" step="0.01" name="funding" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Field</label>
+        <input type="text" name="field" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Category</label>
+        <input type="text" name="category" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-success">Add Startup</button>
+</form>
+{{ end }}

@@ -140,7 +140,19 @@ router.GET("/search", func(c *gin.Context) {
     })
 })
 
-// Search by name
+// This was the Sort by Funding (Descending btw)
+router.POST("/sort-by-funding", func(c *gin.Context) {
+    sortByFunding(&startups, startupCount)
+    c.Redirect(http.StatusFound, "/view")
+})
+
+// This is for the Sort By Year (Ascending btw)
+router.POST("/sort-by-year", func(c *gin.Context) {
+    sortByYear(&startups, startupCount)
+    c.Redirect(http.StatusFound, "/view")
+})
+
+// This if for the Search by name
 router.GET("/search-by-name", func(c *gin.Context) {
     name := c.Query("name")
     var result []Startup
@@ -156,7 +168,7 @@ router.GET("/search-by-name", func(c *gin.Context) {
     })
 })
 
-// Search by field
+// This is for the Search by field from the view html 
 router.GET("/search-by-field", func(c *gin.Context) {
     field := c.Query("field")
     var result []Startup
@@ -172,7 +184,7 @@ router.GET("/search-by-field", func(c *gin.Context) {
     })
 })
 
-// Report by category
+// This is for the Report by category from the view html
 router.GET("/report-category", func(c *gin.Context) {
     categoryMap := make(map[string]int)
     for i := 0; i < startupCount; i++ {
@@ -335,6 +347,8 @@ func searchStartupByField(S StartupList, N int) {
 	fmt.Println("No startup found in that field.")
 }
 
+
+// SortByFunding Function using selection sort (Descending)
 func sortByFunding(S *StartupList, N int) {
 	var pass, idx, i int
 	var temp Startup
@@ -357,6 +371,7 @@ func sortByFunding(S *StartupList, N int) {
 	fmt.Println("Startups sorted by funding (descending).")
 }
 
+// SortByYear Function was using (Ascending)
 func sortByYear(S *StartupList, N int) {
 	var pass, j int
 	var temp Startup

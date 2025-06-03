@@ -32,6 +32,10 @@ Ideal for small startup teams or academic purposes, this project demonstrates fu
 ## Project Structure
 
 ```bash
-Project.go        # Main Go source code file
-README.md         # Project description and usage instructions
-The rest still on progress
+Project.go     # Main Go application with routes, function, and logic
+templates/     # HTML templates for Gin
+layout.html    # Base layout (header/nav)
+index.html     # Home page
+add.html       # Add startup form
+view.html      # View/search/sort/report/delete interface
+README.md      # You're reading it!

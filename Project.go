@@ -60,7 +60,7 @@ router.GET("/add", func(c *gin.Context) {
 	})
 })
 
-// This the AddStartup
+// This for the AddStartup
 router.POST("/add", func(c *gin.Context) {
     var s Startup
 	var fund = c.PostForm("funding")
@@ -140,19 +140,23 @@ router.GET("/search", func(c *gin.Context) {
     })
 })
 
-// This was the Sort by Funding (Descending btw)
-router.POST("/sort-by-funding", func(c *gin.Context) {
-    sortByFunding(&startups, startupCount)
-    c.Redirect(http.StatusFound, "/view")
-})
-
-// This is for the Sort By Year (Ascending btw)
+// This was the Sort your startup slice by founded year ascending
 router.POST("/sort-by-year", func(c *gin.Context) {
     sortByYear(&startups, startupCount)
-    c.Redirect(http.StatusFound, "/view")
+    c.HTML(http.StatusOK, "view.html", gin.H{
+        "startups": startups[:startupCount],
+    })
 })
 
-// This if for the Search by name
+// This was the Sort your startup slice by funding descending
+router.POST("/sort-by-funding", func(c *gin.Context) {
+    sortByFunding(&startups, startupCount)
+    c.HTML(http.StatusOK, "view.html", gin.H{
+        "startups": startups[:startupCount],
+    })
+})
+
+// This is for the Search by name
 router.GET("/search-by-name", func(c *gin.Context) {
     name := c.Query("name")
     var result []Startup
@@ -319,6 +323,7 @@ func addTeamMember(S *StartupList, N int) {
 	fmt.Println("Team member added.")
 }
 
+// For this Function we use the sequential algorithm
 func searchStartupByName(S StartupList, N int) {
 	var name string
 	fmt.Print("Enter name to search: ")
@@ -333,6 +338,7 @@ func searchStartupByName(S StartupList, N int) {
 	fmt.Println("Startup not found.")
 }
 
+// This one we use the Binary Search
 func searchStartupByField(S StartupList, N int) {
 	var field string
 	fmt.Print("Enter field to search: ")

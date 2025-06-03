@@ -1,0 +1,41 @@
+{{ define "content" }}
+<h2 class="mb-4">Search, Sort, and Reports</h2>
+<form method="GET" action="/search-by-name" class="mb-4">
+  <div class="input-group">
+    <input type="text" name="name" class="form-control" placeholder="Search by Startup Name" required>
+    <button class="btn btn-primary">Search</button>
+  </div>
+</form>
+<form method="GET" action="/search-by-field" class="mb-4">
+  <div class="input-group">
+    <input type="text" name="field" class="form-control" placeholder="Search by Field" required>
+    <button class="btn btn-secondary">Search</button>
+  </div>
+</form>
+<form method="POST" action="/sort-by-year" class="mb-4">
+  <button class="btn btn-outline-success">Sort Startups by Founded Year</button>
+</form>
+<form method="GET" action="/report-category" class="mb-4">
+  <button class="btn btn-outline-info">Generate Category Report</button>
+</form>
+{{ if .results }}
+  <h4 class="mt-5">Results</h4>
+  <ul class="list-group">
+    {{ range .results }}
+    <li class="list-group-item">
+      <strong>{{ .Name }}</strong> ({{ .Founded }}) - {{ .Field }} - {{ .Category }}
+    </li>
+    {{ end }}
+  </ul>
+{{ end }}
+{{ if .report }}
+  <h4 class="mt-5">Category Report</h4>
+  <ul class="list-group">
+    {{ range $cat, $count := .report }}
+    <li class="list-group-item">
+      {{ $cat }}: {{ $count }} startups
+    </li>
+    {{ end }}
+  </ul>
+{{ end }}
+{{ end }}

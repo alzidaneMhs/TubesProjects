@@ -1,24 +1,109 @@
-{{ define "content" }}
-<h2 class="mb-4">All Startups</h2>
-{{ if .startups }}
-    <div class="row">
-        {{ range .startups }}
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">{{ .name }}</h5>
-                    <h6 class="card-subtitle mb-2 text-muted">Founded: {{ .founded }}</h6>
-                    <p class="card-text">
-                        <strong>Funding:</strong> ${{ printf "%.2f" .funding }} <br>
-                        <strong>Field:</strong> {{ .field }} <br>
-                        <strong>Category:</strong> {{ .category }}
-                    </p>
-                </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ .title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4">
+        <a class="navbar-brand" href="/">Website Startup Manager</a>
+        <div class="collapse navbar-collapse">
+            <div class="navbar-nav">
+                <a class="nav-link" href="/">Home</a>
+                <a class="nav-link" href="/view">View Startups</a>
+                <a class="nav-link" href="/add">Add Startup</a>
             </div>
         </div>
+    </nav>
+    <div class="container mt-4">
+        <h2 class="mb-4">All Startups</h2>
+
+        <!-- This is the Search/Sort/Report Features -->
+        <form method="GET" action="/search-by-name" class="mb-3">
+            <div class="input-group">
+                <input type="text" name="name" class="form-control" placeholder="Search by Startup Name" required>
+                <button class="btn btn-primary">Search</button>
+            </div>
+        </form>
+        <form method="GET" action="/search-by-field" class="mb-3">
+            <div class="input-group">
+                <input type="text" name="field" class="form-control" placeholder="Search by Field" required>
+                <button class="btn btn-secondary">Search</button>
+            </div>
+        </form>
+        <form method="POST" action="/sort-by-year" class="mb-3">
+            <button class="btn btn-outline-success">Sort Startups by Founded Year</button>
+        </form>
+        <form method="GET" action="/report-category" class="mb-3">
+            <button class="btn btn-outline-info">Generate Category Report</button>
+        </form>
+
+        {{ if .results }}
+        <h4 class="mt-4">Search Results</h4>
+        <ul class="list-group mb-4">
+            {{ range .results }}
+            <li class="list-group-item">
+                <strong>{{ .Name }}</strong> ({{ .Founded }}) - {{ .Field }} - {{ .Category }}
+            </li>
+            {{ end }}
+        </ul>
+        {{ end }}
+
+        {{ if .report }}
+        <h4 class="mt-4">Category Report</h4>
+        <ul class="list-group mb-4">
+            {{ range $cat, $count := .report }}
+            <li class="list-group-item">{{ $cat }}: {{ $count }} startups</li>
+            {{ end }}
+        </ul>
+        {{ end }}
+
+        <!-- This was for the Startup Cards -->
+        {{ if .startups }}
+        <div class="row">
+            {{ range $index, $s := .startups }}
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ $s.Name }}</h5>
+                        <form class="mb-2" method="POST" action="/add-member">
+                            <input type="hidden" name="index" value="{{ $index }}">
+                            <div class="input-group mb-2">
+                                <input type="text" name="member_name" class="form-control" placeholder="Team Member Name" required>
+                                <input type="text" name="member_role" class="form-control" placeholder="Role" required>
+                                <button type="submit" class="btn btn-sm btn-outline-primary">Add</button>
+                            </div>
+                        </form>
+                        <h6 class="card-subtitle mb-2 text-muted">Founded: {{ $s.Founded }}</h6>
+                        <p class="card-text">
+                            <strong>Funding:</strong> ${{ printf "%.2f" $s.Funding }}<br>
+                            <strong>Field:</strong> {{ $s.Field }}<br>
+                            <strong>Category:</strong> {{ $s.Category }}
+                        </p>
+                        {{ if gt $s.TeamSize 0 }}
+                        <p><strong>Team:</strong></p>
+                        <ul>
+                            {{ range $i, $m := $s.Team }}
+                                {{ if lt $i $s.TeamSize }}
+                                    <li>{{ $m.Name }} ({{ $m.Role }})</li>
+                                {{ end }}
+                            {{ end }}
+                        </ul>
+                        {{ end }}
+                        <form method="POST" action="/delete">
+                            <input type="hidden" name="index" value="{{ $index }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {{ end }}
+        </div>
+        {{ else }}
+        <div class="alert alert-warning">No startups available.</div>
         {{ end }}
     </div>
-{{ else }}
-    <div class="alert alert-warning">No startups available.</div>
-{{ end }}
-{{ end }}
+</body>
+</html>

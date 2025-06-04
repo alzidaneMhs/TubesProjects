@@ -16,6 +16,11 @@ type TeamMember struct {
 	Role string
 }
 
+type CategoryReport struct {
+	Category string
+	Count    int
+}
+
 type Startup struct {
 	Name     string `json:"name"`
 	Founded  int
@@ -28,10 +33,10 @@ type Startup struct {
 
 type StartupList [MaxStartups]Startup
 
+var startups StartupList
 var startupCount = 0
 
 func main() {
-	var startups StartupList
 
 	router := gin.Default()
 	router.LoadHTMLGlob("templates/*")
@@ -45,11 +50,7 @@ router.GET("/", func(c *gin.Context) {
 
 // This for View your Startup Router
 router.GET("/view", func(c *gin.Context) {
-	c.HTML(http.StatusOK, "view.html", gin.H{
-		"title": "View Startups",
-		"content": "view",
-		"startups": startups[:startupCount],
-	})
+	viewStartups(c, startups, startupCount)
 })
 
 // This the Router of AddStartup
@@ -63,55 +64,46 @@ router.GET("/add", func(c *gin.Context) {
 // This for the AddStartup
 router.POST("/add", func(c *gin.Context) {
     var s Startup
-	var fund = c.PostForm("funding")
-	var found = c.PostForm("founded")
-	number, err := strconv.ParseFloat(fund, 64)
- 	namber, rre := strconv.Atoi(found)
+    fundingStr := c.PostForm("funding")
+    foundedStr := c.PostForm("founded")
 
-	if err != nil {
-		fmt.Print("error")
-	} 
+    funding, err1 := strconv.ParseFloat(fundingStr, 64)
+    founded, err2 := strconv.Atoi(foundedStr)
 
-	if rre != nil {
-		fmt.Print("error")
-	}
+    if err1 != nil || err2 != nil {
+        c.String(http.StatusBadRequest, "Invalid input")
+        return
+    }
 
     s.Name = c.PostForm("name")
-	s.Funding = number
-	s.Founded = namber
-    s.Field = c.PostForm("field")	
+    s.Funding = funding
+    s.Founded = founded
+    s.Field = c.PostForm("field")
     s.Category = c.PostForm("category")
 
-    if startupCount < MaxStartups {
-        startups[startupCount] = s
-        startupCount++
-        c.Redirect(http.StatusFound, "/view")
-    } else {
-        c.String(http.StatusBadRequest, "Startup list is full.")
-    }
-	fmt.Print(s)
+    addStartup(&startups, &startupCount, s)
+
+	fmt.Println("Added:", s.Name)
+	fmt.Println("Total startups now:", startupCount)
+
+    c.Redirect(http.StatusFound, "/view")
 })
 
 // This for Add Member
 router.POST("/add-member", func(c *gin.Context) {
     idxStr := c.PostForm("index")
-    name := c.PostForm("member_name")
-    role := c.PostForm("member_role")
-
     idx, err := strconv.Atoi(idxStr)
     if err != nil || idx < 0 || idx >= startupCount {
         c.String(http.StatusBadRequest, "Invalid startup index")
         return
     }
 
-    if startups[idx].TeamSize >= MaxMembers {
-        c.String(http.StatusBadRequest, "Team is full")
-        return
+    member := TeamMember{
+        Name: c.PostForm("member_name"),
+        Role: c.PostForm("member_role"),
     }
 
-    startups[idx].Team[startups[idx].TeamSize] = TeamMember{Name: name, Role: role}
-    startups[idx].TeamSize++
-
+    addTeamMember(&startups, idx, member)
     c.Redirect(http.StatusFound, "/view")
 })
 
@@ -124,11 +116,7 @@ router.POST("/delete", func(c *gin.Context) {
         return
     }
 
-    for i := idx; i < startupCount-1; i++ {
-        startups[i] = startups[i+1]
-    }
-    startupCount--
-
+    deleteStartup(&startups, &startupCount, idx)
     c.Redirect(http.StatusFound, "/view")
 })
 
@@ -144,7 +132,9 @@ router.GET("/search", func(c *gin.Context) {
 router.POST("/sort-by-year", func(c *gin.Context) {
     sortByYear(&startups, startupCount)
     c.HTML(http.StatusOK, "view.html", gin.H{
+        "title": "Sorted by Year",
         "startups": startups[:startupCount],
+        "results": []Startup{}, // NOTE "THIS FOR AVOID CRASH, DONT DELETE IT"
     })
 })
 
@@ -152,54 +142,25 @@ router.POST("/sort-by-year", func(c *gin.Context) {
 router.POST("/sort-by-funding", func(c *gin.Context) {
     sortByFunding(&startups, startupCount)
     c.HTML(http.StatusOK, "view.html", gin.H{
+        "title": "Sorted by Funding",
         "startups": startups[:startupCount],
+        "results": []Startup{}, 
     })
 })
 
 // This is for the Search by name
 router.GET("/search-by-name", func(c *gin.Context) {
-    name := c.Query("name")
-    var result []Startup
-    for i := 0; i < startupCount; i++ {
-        if startups[i].Name == name {
-            result = append(result, startups[i])
-        }
-    }
-    c.HTML(http.StatusOK, "view.html", gin.H{
-        "title": "Search Result",
-        "results": result,
-        "startups": startups[:startupCount],
-    })
+	searchStartupByName(c, startups, startupCount)
 })
 
 // This is for the Search by field from the view html 
 router.GET("/search-by-field", func(c *gin.Context) {
-    field := c.Query("field")
-    var result []Startup
-    for i := 0; i < startupCount; i++ {
-        if startups[i].Field == field {
-            result = append(result, startups[i])
-        }
-    }
-    c.HTML(http.StatusOK, "view.html", gin.H{
-        "title": "Field Search",
-        "results": result,
-        "startups": startups[:startupCount],
-    })
+	searchStartupByField(c, startups, startupCount)
 })
 
 // This is for the Report by category from the view html
-router.GET("/report-category", func(c *gin.Context) {
-    categoryMap := make(map[string]int)
-    for i := 0; i < startupCount; i++ {
-        cat := startups[i].Category
-        categoryMap[cat]++
-    }
-    c.HTML(http.StatusOK, "view.html", gin.H{
-        "title": "Category Report",
-        "report": categoryMap,
-        "startups": startups[:startupCount],
-    })
+router.POST("/report-category", func(c *gin.Context) {
+	reportByCategory(c, &startups, startupCount)
 })
 
 	router.Run()
@@ -257,102 +218,100 @@ router.GET("/report-category", func(c *gin.Context) {
 // 	fmt.Print("Enter your choice: ")
 // }
 
-func addStartup(S *StartupList, count *int) {
+func addStartup(S *StartupList, count *int, s Startup) {
 	if *count >= MaxStartups {
 		fmt.Println("Startup list is full.")
 		return
 	}
-
-	var s Startup
-	fmt.Print("Name: ")
-	fmt.Scan(&s.Name)
-	fmt.Print("Founded Year: ")
-	fmt.Scan(&s.Founded)
-	fmt.Print("Funding: ")
-	fmt.Scan(&s.Funding)
-	fmt.Print("Field: ")
-	fmt.Scan(&s.Field)
-	fmt.Print("Category: ")
-	fmt.Scan(&s.Category)
-
 	S[*count] = s
 	*count++
 	fmt.Println("Startup added successfully.")
 }
 
-func viewStartups(S StartupList, N int) {
+func viewStartups(c *gin.Context, S StartupList, N int) {
+	var lines []string
+
 	if N == 0 {
-		fmt.Println("No startups to show.")
-		return
-	}
-	for i := 0; i < N; i++ {
-		fmt.Printf("[%d] %s (%d) - $%.2f - %s - %s\n", i+1, S[i].Name, S[i].Founded, S[i].Funding, S[i].Field, S[i].Category)
-		for j := 0; j < S[i].TeamSize; j++ {
-			fmt.Printf("   -> %s (%s)\n", S[i].Team[j].Name, S[i].Team[j].Role)
+		lines = append(lines, "No startups to show.")
+	} else {
+		for i := 0; i < N; i++ {
+			lines = append(lines, fmt.Sprintf("[%d] %s (%d) - $%.2f - %s - %s",
+				i+1, S[i].Name, S[i].Founded, S[i].Funding, S[i].Field, S[i].Category))
+
+			for j := 0; j < S[i].TeamSize; j++ {
+				lines = append(lines, fmt.Sprintf("   -> %s (%s)", S[i].Team[j].Name, S[i].Team[j].Role))
+			}
 		}
 	}
+
+	c.HTML(http.StatusOK, "view.html", gin.H{
+		"title": "View Startups (Console Style)",
+		"rawOutput": lines,
+		"startups": S[:N],
+	})
 }
 
-func addTeamMember(S *StartupList, N int) {
-	var index int
-	var member TeamMember
-
-	if N == 0 {
-		fmt.Println("No startups available.")
-		return
-	}
-	fmt.Print("Enter startup number: ")
-	fmt.Scan(&index)
-	if index < 1 || index > N {
-		fmt.Println("Invalid startup number.")
+func addTeamMember(S *StartupList, index int, member TeamMember) {
+	if index < 0 || index >= MaxStartups {
+		fmt.Println("Invalid startup index.")
 		return
 	}
 
-	fmt.Print("Team member name: ")
-	fmt.Scan(&member.Name)
-	fmt.Print("Role: ")
-	fmt.Scan(&member.Role)
-
-	startup := &S[index-1]
+	startup := &S[index]
 	if startup.TeamSize >= MaxMembers {
 		fmt.Println("Team is full.")
 		return
 	}
+
 	startup.Team[startup.TeamSize] = member
 	startup.TeamSize++
 	fmt.Println("Team member added.")
 }
 
-// For this Function we use the sequential algorithm
-func searchStartupByName(S StartupList, N int) {
-	var name string
-	fmt.Print("Enter name to search: ")
-	fmt.Scan(&name)
+// and this was the search by name using the sequential
+func searchStartupByName(c *gin.Context, S StartupList, N int) {
+	name := c.Query("name")
+	var results []Startup
 
 	for i := 0; i < N; i++ {
 		if S[i].Name == name {
-			fmt.Printf("Found: %s (%d) - $%.2f - %s - %s\n", S[i].Name, S[i].Founded, S[i].Funding, S[i].Field, S[i].Category)
-			return
+			results = append(results, S[i])
 		}
 	}
-	fmt.Println("Startup not found.")
+
+	c.HTML(http.StatusOK, "view.html", gin.H{
+		"title": "Search by Name",
+		"results": results,        
+		"startups": S[:N],
+	})
 }
 
-// This one we use the Binary Search
-func searchStartupByField(S StartupList, N int) {
-	var field string
-	fmt.Print("Enter field to search: ")
-	fmt.Scan(&field)
+// this was the search by field using binary search algorithm but with a little bit modified it
+func searchStartupByField(c *gin.Context, S StartupList, N int) {
+	field := c.Query("field")
+	var results []Startup
 
+	var R, L, M int
+
+	L = 0 
+	R = N
 	for i := 0; i < N; i++ {
-		if S[i].Field == field {
-			fmt.Printf("Found: %s (%d) - $%.2f - %s - %s\n", S[i].Name, S[i].Founded, S[i].Funding, S[i].Field, S[i].Category)
-			return
+		M = (R + L) / 2
+		if S[M].Field == field {
+			results = append(results, S[i])
+		}else if S[M].Field > field  {
+			R = M - 1
+		}else if S[M].Field < field{
+			L = M + 1
 		}
 	}
-	fmt.Println("No startup found in that field.")
-}
 
+	c.HTML(http.StatusOK, "view.html", gin.H{
+		"title": "Search by Field",
+		"results": results,
+		"startups": S[:N],
+	})
+}
 
 // SortByFunding Function using selection sort (Descending)
 func sortByFunding(S *StartupList, N int) {
@@ -395,9 +354,15 @@ func sortByYear(S *StartupList, N int) {
 	fmt.Println("Startups sorted by year (ascending).")
 }
 
-func reportByCategory(S *StartupList, N int) {
+func reportByCategory(c *gin.Context, S *StartupList, N int) {
 	if N == 0 {
-		fmt.Println("No data available.")
+		c.HTML(http.StatusOK, "view.html", gin.H{
+			"title": "Category Report",
+			"message": "No data available.",
+			"report": []CategoryReport{}, // 👈 changed from map to struct slice
+			"startups": (*S)[:N],
+			"results": []Startup{},
+		})
 		return
 	}
 
@@ -416,42 +381,37 @@ func reportByCategory(S *StartupList, N int) {
 			}
 		}
 
-		if found == false {
+		if !found {
 			categories[categoryCount] = cat
 			counts[categoryCount] = 1
 			categoryCount++
 		}
 	}
 
-	fmt.Println("Report: Number of Startups per Category")
+	var report []CategoryReport
 	for i := 0; i < categoryCount; i++ {
-		fmt.Printf("- %s: %d\n", categories[i], counts[i])
+		report = append(report, CategoryReport{
+			Category: categories[i],
+			Count:    counts[i],
+		})
 	}
+
+	c.HTML(http.StatusOK, "view.html", gin.H{
+		"title": "Category Report",
+		"report": report, // 👈 struct slice
+		"startups": (*S)[:N],
+		"results": []Startup{},
+	})
 }
 
-func deleteStartup(S *StartupList, N *int) {
-	if *N == 0 {
-		fmt.Println("No startups to delete.")
-		return
-	}
-
-	var index int
-	fmt.Print("Enter the index of the startup to delete: ")
-	fmt.Scan(&index)
-
-	if index <= 0 || index > *N {
+func deleteStartup(S *StartupList, N *int, index int) {
+	if *N == 0 || index < 0 || index >= *N {
 		fmt.Println("Invalid index.")
 		return
 	}
 
-	fmt.Println("Before deletion:")
-	viewStartups(*S, *N)
-
-	for i := index - 1; i < *N-1; i++ {
+	for i := index; i < *N-1; i++ {
 		S[i] = S[i+1]
 	}
 	*N--
-
-	fmt.Println("After deletion:")
-	viewStartups(*S, *N)
 }

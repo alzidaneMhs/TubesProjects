@@ -118,7 +118,7 @@
     }
 
     .card-subtitle {
-    color: #ffffff !important;
+        color: #ffffff !important;
     }
 
     .input-group input {
@@ -167,10 +167,10 @@
         <form method="POST" action="/sort-by-funding" class="mb-3">
         <button class="btn btn-outline-dark">Sort Startups by Funding (Descending)</button>
         </form>
-        <form method="GET" action="/report-category" class="mb-3">
+        <form method="POST" action="/report-category" class="mb-3">
             <button class="btn btn-outline-danger">Generate Category Report</button>
         </form>
-
+        
         {{ if .results }}
         <h4 class="mt-4">Search Results</h4>
         <ul class="list-group mb-4">
@@ -183,12 +183,17 @@
         {{ end }}
 
         {{ if .report }}
-        <h4 class="mt-4">Category Report</h4>
-        <ul class="list-group mb-4">
-            {{ range $cat, $count := .report }}
-            <li class="list-group-item">{{ $cat }}: {{ $count }} startups</li>
-            {{ end }}
-        </ul>
+        <div class="container mt-4">
+            <h4>Category Report:</h4>
+            <ul class="list-group">
+                {{ range .report }}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ .Category }}
+                    <span class="badge bg-primary rounded-pill">{{ .Count }}</span>
+                </li>
+                {{ end }}
+            </ul>
+        </div>
         {{ end }}
 
         <!-- This was for the Startup Cards -->
@@ -216,11 +221,11 @@
                         {{ if gt $s.TeamSize 0 }}
                         <p><strong>Team:</strong></p>
                         <ul>
-                            {{ range $i, $m := $s.Team }}
-                                {{ if lt $i $s.TeamSize }}
-                                    <li>{{ $m.Name }} ({{ $m.Role }})</li>
-                                {{ end }}
+                        {{ range $i, $m := $s.Team }}
+                            {{ if lt $i $s.TeamSize }}
+                            <li>{{ $m.Name }} ({{ $m.Role }})</li>
                             {{ end }}
+                        {{ end }}
                         </ul>
                         {{ end }}
                         <form method="POST" action="/delete">

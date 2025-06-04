@@ -218,6 +218,7 @@ router.POST("/report-category", func(c *gin.Context) {
 // 	fmt.Print("Enter your choice: ")
 // }
 
+// This the function for AddStartup
 func addStartup(S *StartupList, count *int, s Startup) {
 	if *count >= MaxStartups {
 		fmt.Println("Startup list is full.")
@@ -228,6 +229,7 @@ func addStartup(S *StartupList, count *int, s Startup) {
 	fmt.Println("Startup added successfully.")
 }
 
+// This was the viewStartup Function
 func viewStartups(c *gin.Context, S StartupList, N int) {
 	var lines []string
 
@@ -268,7 +270,7 @@ func addTeamMember(S *StartupList, index int, member TeamMember) {
 	fmt.Println("Team member added.")
 }
 
-// and this was the search by name using the sequential
+// and this was the search by name using the sequential search
 func searchStartupByName(c *gin.Context, S StartupList, N int) {
 	name := c.Query("name")
 	var results []Startup
@@ -291,23 +293,36 @@ func searchStartupByField(c *gin.Context, S StartupList, N int) {
 	field := c.Query("field")
 	var results []Startup
 
-	var R, L, M int
+	L := 0
+	R := N - 1
+	found := -1
 
-	L = 0 
-	R = N
-	for i := 0; i < N; i++ {
-		M = (R + L) / 2
+	for L <= R {
+		M := (L + R) / 2
 		if S[M].Field == field {
-			results = append(results, S[i])
-		}else if S[M].Field > field  {
+			found = M
+			R = M - 1 
+		} else if S[M].Field > field {
 			R = M - 1
-		}else if S[M].Field < field{
+		} else {
 			L = M + 1
 		}
 	}
 
+	if found != -1 {
+		i := found
+		for i > 0 && S[i-1].Field == field {
+			i--
+		}
+
+		for i < N && S[i].Field == field {
+			results = append(results, S[i])
+			i++
+		}
+	}
+
 	c.HTML(http.StatusOK, "view.html", gin.H{
-		"title": "Search by Field",
+		"title":   "Search by Field (Binary, No Break)",
 		"results": results,
 		"startups": S[:N],
 	})
@@ -336,7 +351,7 @@ func sortByFunding(S *StartupList, N int) {
 	fmt.Println("Startups sorted by funding (descending).")
 }
 
-// SortByYear Function was using (Ascending)
+// SortByYear Function was using insertion sort(Ascending)
 func sortByYear(S *StartupList, N int) {
 	var pass, j int
 	var temp Startup
@@ -359,7 +374,7 @@ func reportByCategory(c *gin.Context, S *StartupList, N int) {
 		c.HTML(http.StatusOK, "view.html", gin.H{
 			"title": "Category Report",
 			"message": "No data available.",
-			"report": []CategoryReport{}, // 👈 changed from map to struct slice
+			"report": []CategoryReport{},
 			"startups": (*S)[:N],
 			"results": []Startup{},
 		})
@@ -392,18 +407,19 @@ func reportByCategory(c *gin.Context, S *StartupList, N int) {
 	for i := 0; i < categoryCount; i++ {
 		report = append(report, CategoryReport{
 			Category: categories[i],
-			Count:    counts[i],
+			Count: counts[i],
 		})
 	}
 
 	c.HTML(http.StatusOK, "view.html", gin.H{
 		"title": "Category Report",
-		"report": report, // 👈 struct slice
+		"report": report, 
 		"startups": (*S)[:N],
 		"results": []Startup{},
 	})
 }
 
+// this function using a shifting method
 func deleteStartup(S *StartupList, N *int, index int) {
 	if *N == 0 || index < 0 || index >= *N {
 		fmt.Println("Invalid index.")
